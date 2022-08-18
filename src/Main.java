@@ -15,13 +15,36 @@ import java.lang.String;
 
 public class Main {
     public static boolean terminated;
+    public static  String projectDirectory = System.getProperty("user.dir");
     public static void main(String[] args) {
         terminated = false;
         /******************** source code reading **************************/
         //file class
         src.ReadFile read = new src.ReadFile();
-//        //choose a file
         String swiftpath = "";
+        if (true) {
+            File directoryPath = new File(projectDirectory+"\\src\\"+"SwiftInput");
+
+            for(File fileElement : directoryPath.listFiles()) {
+                // Read file
+                swiftpath = projectDirectory+"\\src\\"+"SwiftInput\\" +fileElement.getName();
+                read.setSwiftname(fileElement.getName());
+                read.Swiftname = fileElement.getName();
+                System.out.println(swiftpath);
+                String swiftCode = read.IosFileRead(swiftpath);
+
+                // Convert to java
+                String javaCode = convertToJava(swiftCode);
+                System.out.println(javaCode);
+
+                //create a file
+                read.IosFileWrite(javaCode);
+            }
+
+            terminated = true;
+        } else {
+
+//        //choose a file
         swiftpath = read.chooseFile();
 //        //read a file
         String swiftCode = read.IosFileRead(swiftpath);
@@ -88,8 +111,7 @@ public class Main {
         String hexColor2 = ColorsConfig.RGBToHex(48,209,88);
         System.out.println(hexColor);
         System.out.println(hexColor2);
-
-
+        }
     }
 
 

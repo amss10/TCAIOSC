@@ -18,14 +18,14 @@ public class ReadFile {
             if (Swiftname.substring(Swiftname.indexOf('.')+1).startsWith("swift"))
             {
                 System.out.println(Swiftname.substring(Swiftname.indexOf('.')+1));
-                swiftTojava = new File("Android"+Swiftname.substring(0,Swiftname.indexOf('.'))+".java");
+                swiftTojava = new File("src\\javaOutput\\"+"Android"+Swiftname.substring(0,Swiftname.indexOf('.'))+".java");
             }
             else if (Swiftname.substring(Swiftname.indexOf('.')+1).startsWith("storyboard"))
             {
-                swiftTojava = new File("Android"+Swiftname.substring(0,Swiftname.indexOf('.'))+".xml");
+                swiftTojava = new File("src\\javaOutput\\"+"Android"+Swiftname.substring(0,Swiftname.indexOf('.'))+".xml");
             }
             else {
-                swiftTojava = new File("Android" + Swiftname);
+                swiftTojava = new File("src\\javaOutput\\"+"Android" + Swiftname);
             }
 
         if(!swiftTojava.exists()) {
@@ -68,5 +68,10 @@ public class ReadFile {
         Swiftname = choose.getSelectedFile().getName();
 
         return path;
+    }
+
+    public static void  setSwiftname (String fileName)
+    {
+        Swiftname = fileName;
     }
 }
