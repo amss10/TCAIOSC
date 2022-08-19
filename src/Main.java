@@ -22,33 +22,89 @@ public class Main {
         //file class
         src.ReadFile read = new src.ReadFile();
         String swiftpath = "";
+
         if (true) {
-            File directoryPath = new File(projectDirectory+"\\src\\"+"SwiftInput");
+            try {
+                File directoryPath = new File(projectDirectory+"\\src\\"+"SwiftInput");
+                File[] filesArray = directoryPath.listFiles();
+                File csvFile = new File("src\\Data.csv");
+                FileWriter fileWriter = new FileWriter(csvFile);
 
-            for(File fileElement : directoryPath.listFiles()) {
-                // Read file
-                swiftpath = projectDirectory+"\\src\\"+"SwiftInput\\" +fileElement.getName();
-                read.setSwiftname(fileElement.getName());
-                read.Swiftname = fileElement.getName();
-                System.out.println(swiftpath);
-                String swiftCode = read.IosFileRead(swiftpath);
+                String[][] dataToCsv = new String[filesArray.length][2] ;
+                int counter = 0;
+                for(File fileElement : filesArray) {
+                    // Collect Data to insert into CSV
+                    int accuracy = 0 ;
+                    String fileName = fileElement.getName();
+                    // Read file
+                    swiftpath = projectDirectory+"\\src\\"+"SwiftInput\\" +fileElement.getName();
+                    read.setSwiftname(fileElement.getName());
+                    read.Swiftname = fileElement.getName();
+                    System.out.println(swiftpath);
+                    String swiftCode = read.IosFileRead(swiftpath);
 
-                // Convert to java
-                String javaCode = convertToJava(swiftCode);
-                System.out.println(javaCode);
+                    // Convert to java
+                    String javaCode = convertToJava(swiftCode);
+                    System.out.println(javaCode);
 
-                //create a file
-                read.IosFileWrite(javaCode);
+                    //create a file
+                    read.IosFileWrite(javaCode);
+
+
+                    // Calculate Accuracy
+                    BufferedReader reader = new BufferedReader(new FileReader("src\\javaOutput\\"+fileElement.getName().substring(0, fileElement.getName().length() - 6)+".java"));
+                    float lines = 0;
+                    while (reader.readLine() != null) lines++;
+                    reader.close();
+
+                    // Count errors
+                    String a[] = javaCode.split(" ");
+
+                    float numberOfErrors = 0;
+                    for (int i = 0; i < a.length; i++)
+                    {
+                        if (a[i].contains("TCIOSACERROR"))
+                        {
+                            numberOfErrors++;
+                        }
+                    }
+
+
+
+                    dataToCsv[counter][0] = fileName;
+                    dataToCsv[counter++][1] = String.valueOf( ((lines-numberOfErrors) /lines ) * 100) + "%";
+                }
+
+                // Convert 2D Array to CSV File
+                for (String[] data : dataToCsv) {
+                    StringBuilder line = new StringBuilder();
+                    for (int i = 0; i < data.length; i++) {
+                        line.append("\"");
+                        line.append(data[i].replaceAll("\"","\"\""));
+                        line.append("\"");
+                        if (i != data.length - 1) {
+                            line.append(',');
+                        }
+                    }
+                    line.append("\n");
+                    fileWriter.write(line.toString());
+                }
+                fileWriter.close();
+
+
+
+                terminated = true;
+            } catch(IOException e) {
+                System.out.println("ERROR DETECTED");
             }
 
-            terminated = true;
         } else {
 
 //        //choose a file
-        swiftpath = read.chooseFile();
+            swiftpath = read.chooseFile();
 //        //read a file
-        String swiftCode = read.IosFileRead(swiftpath);
-//        String swiftCode = "struct ContentView: View {\n" +
+            String swiftCode = read.IosFileRead(swiftpath);
+//          String swiftCode = "struct ContentView: View {\n" +
 //                "    @State private var name: String = \"\"\n" +
 //                "@State private var age:String = \"\"\n" +
 //                "    @State private var fullText: String = \"This is some editable text...\"\n" +
@@ -69,48 +125,48 @@ public class Main {
 //                "    }\n" +
 //                "}";
 //
-        /******************** Destination code writing **************************/
+            /******************** Destination code writing **************************/
 
-        String javaCode = convertToJava(swiftCode);
-        System.out.println(javaCode);
-//        //create a file
-        read.IosFileWrite(javaCode);
-        terminated = true;
+            String javaCode = convertToJava(swiftCode);
+            System.out.println(javaCode);
+    //        //create a file
+            read.IosFileWrite(javaCode);
+            terminated = true;
 
-        /******************** Components Counter **************************/
+            /******************** Components Counter **************************/
 
-        ArrayList<String> javaComponents = new ArrayList<String>();
-        javaComponents.add("TextView ");
-        javaComponents.add("EditText ");
-        javaComponents.add("Button ");
-        javaComponents.add("AlertDialog ");
-        javaComponents.add("ImageView ");
-        javaComponents.add("ProgressView ");
-        javaComponents.add("Switch ");
-        javaComponents.add("Picker ");
-        javaComponents.add("URL ");
-        javaComponents.add("URLButton ");
-        int DestinationComponentsCount = 0;
-        int count =0;
-        for(int i = 0; i<javaComponents.size();i++){
-            count+= countMatches(javaCode, javaComponents.get(i));
-        }
-        System.out.println("Swift Components = "+SwiftToJavaVisitor.ComponentsCounter);
-        System.out.println("Java Components  = "+count);
-        System.out.println("XML Components   = "+XmlWriter.XMLComponentsCounter);
-        System.out.println("Swift To Java & XML ratio  = "+SwiftToJavaVisitor.ComponentsCounter+" : "+(count+XmlWriter.XMLComponentsCounter));
-        System.out.println("Swift To Java ratio        = "+SwiftToJavaVisitor.ComponentsCounter+" : "+count);
-        System.out.println("Swift To XML ratio         = "+SwiftToJavaVisitor.ComponentsCounter+" : "+(XmlWriter.XMLComponentsCounter));
+            ArrayList<String> javaComponents = new ArrayList<String>();
+            javaComponents.add("TextView ");
+            javaComponents.add("EditText ");
+            javaComponents.add("Button ");
+            javaComponents.add("AlertDialog ");
+            javaComponents.add("ImageView ");
+            javaComponents.add("ProgressView ");
+            javaComponents.add("Switch ");
+            javaComponents.add("Picker ");
+            javaComponents.add("URL ");
+            javaComponents.add("URLButton ");
+            int DestinationComponentsCount = 0;
+            int count =0;
+            for(int i = 0; i<javaComponents.size();i++){
+                count+= countMatches(javaCode, javaComponents.get(i));
+            }
+            System.out.println("Swift Components = "+SwiftToJavaVisitor.ComponentsCounter);
+            System.out.println("Java Components  = "+count);
+            System.out.println("XML Components   = "+XmlWriter.XMLComponentsCounter);
+            System.out.println("Swift To Java & XML ratio  = "+SwiftToJavaVisitor.ComponentsCounter+" : "+(count+XmlWriter.XMLComponentsCounter));
+            System.out.println("Swift To Java ratio        = "+SwiftToJavaVisitor.ComponentsCounter+" : "+count);
+            System.out.println("Swift To XML ratio         = "+SwiftToJavaVisitor.ComponentsCounter+" : "+(XmlWriter.XMLComponentsCounter));
 
-        /******************** Colors configurations testing **************************/
+            /******************** Colors configurations testing **************************/
 
-        int     R = 10,
-                G = 132,
-                B = 255;
-        String hexColor = ColorsConfig.RGBToHex(R,G,B);
-        String hexColor2 = ColorsConfig.RGBToHex(48,209,88);
-        System.out.println(hexColor);
-        System.out.println(hexColor2);
+            int     R = 10,
+                    G = 132,
+                    B = 255;
+            String hexColor = ColorsConfig.RGBToHex(R,G,B);
+            String hexColor2 = ColorsConfig.RGBToHex(48,209,88);
+            System.out.println(hexColor);
+            System.out.println(hexColor2);
         }
     }
 
