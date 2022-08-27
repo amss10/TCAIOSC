@@ -290,10 +290,13 @@ public class SwiftToJavaVisitor extends Swift3BaseVisitor<String> {
             extrabrace_flag=false;
             Java_top+="\n}";
         }
+        if(Java_top.contains("HTTPClient")){
+            Java_import+="import AsyncHTTPClient\n";
+        }
         System.out.println("Components: "+ComponentsCounter);
         return Java_import+Java_top;
         }catch(Exception e){
-
+            System.out.println(e);
             return"TCIOSACERROR Statements "+ctx.getText();
         }
     }
