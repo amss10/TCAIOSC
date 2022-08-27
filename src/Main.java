@@ -23,7 +23,7 @@ public class Main {
         src.ReadFile read = new src.ReadFile();
         String swiftpath = "";
 
-        if (false) {
+        if (true) {
             try {
                 File directoryPath = new File(projectDirectory+"\\src\\"+"SwiftInput");
                 File[] filesArray = directoryPath.listFiles();

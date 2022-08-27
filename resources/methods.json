@@ -82,5 +82,6 @@
   //"Alert" : "Toast.makeText",
   //intent
   "performSegue": "Intent intent = new Intent",
-  "exit" : "System.exit"
+  "exit" : "System.exit",
+  "HTTPClient": "AsyncHttpClient"
 }
