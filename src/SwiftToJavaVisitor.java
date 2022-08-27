@@ -429,39 +429,47 @@ public class SwiftToJavaVisitor extends Swift3BaseVisitor<String> {
 
     @Override
     public String visitControl_transfer_statement(Swift3Parser.Control_transfer_statementContext ctx) {
-        String Java_control="";
-        Java_control+=visitReturn_statement(ctx.return_statement());
-        return Java_control;
+        String Java_control = "";
+        try {
+            Java_control += visitReturn_statement(ctx.return_statement());
+            return Java_control;
+        }catch(Exception e){
+            Java_control+="TCIOSACERROR "+Java_control;
+            return Java_control;
+        }
     }
 
     @Override
     public String visitReturn_statement(Swift3Parser.Return_statementContext ctx) {
         String Java_return="return ";
-        if(ctx.expression()!=null)
-        {
-            Java_return+=visitExpression(ctx.expression());
+        try {
+            if (ctx.expression() != null) {
+                Java_return += visitExpression(ctx.expression());
+            }
+            return Java_return+";";
+        }catch (Exception e){
+            Java_return+=";";
+            return Java_return;
         }
-
-        return Java_return+";";
     }
 
     @Override
     public String visitLoop_statement(Swift3Parser.Loop_statementContext ctx) {
         String Java_loop="";
-        if (ctx.while_statement() != null)
-        {
-            Java_loop += visitWhile_statement(ctx.while_statement());
+        try {
+            if (ctx.while_statement() != null) {
+                Java_loop += visitWhile_statement(ctx.while_statement());
 
+            } else if (ctx.repeat_while_statement() != null) {
+                Java_loop += visitRepeat_while_statement(ctx.repeat_while_statement());
+            } else if (ctx.for_in_statement() != null) {
+                Java_loop += visitFor_in_statement(ctx.for_in_statement());
+            }
+            return Java_loop;
+        }catch(Exception e){
+            Java_loop+="TCIOSACERROR "+ctx.getText();
+            return Java_loop;
         }
-        else if (ctx.repeat_while_statement() != null)
-        {
-            Java_loop += visitRepeat_while_statement(ctx.repeat_while_statement());
-        }
-        else if(ctx.for_in_statement()!= null)
-        {
-            Java_loop+=visitFor_in_statement(ctx.for_in_statement());
-        }
-        return Java_loop;
     }
 
     @Override
@@ -483,15 +491,19 @@ public class SwiftToJavaVisitor extends Swift3BaseVisitor<String> {
 
     @Override
     public String visitRepeat_while_statement(Swift3Parser.Repeat_while_statementContext ctx) {
-
-        String java_repeat="";
-        java_repeat += "do ";
-        java_repeat += "{\n";
-        java_repeat+=visitCode_block(ctx.code_block());
-        java_repeat+="\n}";
-        java_repeat += "while ";
-        java_repeat += "( "+ ctx.expression().getText()+" );";
-        return java_repeat;
+        String java_repeat = "";
+        try {
+            java_repeat += "do ";
+            java_repeat += "{\n";
+            java_repeat += visitCode_block(ctx.code_block());
+            java_repeat += "\n}";
+            java_repeat += "while ";
+            java_repeat += "( " + ctx.expression().getText() + " );";
+            return java_repeat;
+        }catch(Exception e){
+            java_repeat+= "TCIOSACERROR "+ctx.getText();
+            return java_repeat;
+        }
     }
 
     @Override
@@ -572,7 +584,6 @@ public class SwiftToJavaVisitor extends Swift3BaseVisitor<String> {
         }
         return Java_struct;
         }catch(Exception e){
-
             return"TCIOSACERROR Statements "+ctx.getText();
         }
     }
@@ -588,7 +599,6 @@ public class SwiftToJavaVisitor extends Swift3BaseVisitor<String> {
         }
         return Struct_body;
         }catch(Exception e){
-
             return"TCIOSACERROR Statements "+ctx.getText();
         }
     }
@@ -601,7 +611,6 @@ public class SwiftToJavaVisitor extends Swift3BaseVisitor<String> {
         return Struct_member;
 
     }catch(Exception e){
-
         return"TCIOSACERROR Statements "+ctx.getText();
     }
     }
@@ -609,16 +618,20 @@ public class SwiftToJavaVisitor extends Swift3BaseVisitor<String> {
     @Override
     public String visitInitializer_declaration(Swift3Parser.Initializer_declarationContext ctx) {
         String Java_init_declaration="";
-        if(ctx.initializer_head().getText().contains("init"))
-        {
-            Java_init_declaration+="public ";
-            Java_init_declaration+=ourclass+"(";
+        try {
+            if (ctx.initializer_head().getText().contains("init")) {
+                Java_init_declaration += "public ";
+                Java_init_declaration += ourclass + "(";
+            }
+            Java_init_declaration += visitParameter_list(ctx.parameter_clause().parameter_list()) + ")";
+            Java_init_declaration += "\n {\n";
+            Java_init_declaration += visitCode_block(ctx.initializer_body().code_block());
+            Java_init_declaration += "\n}";
+            return Java_init_declaration;
+        }catch (Exception e){
+            Java_init_declaration+=ctx.getText();
+            return "TCIOSACERROR "+ Java_init_declaration;
         }
-        Java_init_declaration+=visitParameter_list(ctx.parameter_clause().parameter_list())+")";
-        Java_init_declaration+="\n {\n";
-        Java_init_declaration+=visitCode_block(ctx.initializer_body().code_block());
-        Java_init_declaration+="\n}";
-        return Java_init_declaration;
     }
 
 
@@ -626,178 +639,198 @@ public class SwiftToJavaVisitor extends Swift3BaseVisitor<String> {
     @Override
     public String visitParameter_list(Swift3Parser.Parameter_listContext ctx) {
         String Java_parameter="";
-        for(int i =0;i<ctx.parameter().size();i++)
-        {
-            Java_parameter += visitType_annotation(ctx.parameter(i).type_annotation()) + " ";
-            Java_parameter += ctx.parameter(i).local_parameter_name().getText() ;
-            if(i!=ctx.parameter().size()-1)
-                Java_parameter+=",";
+        try {
+            for (int i = 0; i < ctx.parameter().size(); i++) {
+                Java_parameter += visitType_annotation(ctx.parameter(i).type_annotation()) + " ";
+                Java_parameter += ctx.parameter(i).local_parameter_name().getText();
+                if (i != ctx.parameter().size() - 1)
+                    Java_parameter += ",";
+            }
+            return Java_parameter;
+        }catch(Exception e){
+            Java_parameter+=ctx.getText();
+            return "TCIOSACERROR "+Java_parameter;
         }
-        return Java_parameter;
     }
 
     @Override
     public String visitFunction_declaration(Swift3Parser.Function_declarationContext ctx) {
         String Java_function="";
         String javatype="";
+        try {
+            if (ctx.function_head().declaration_modifiers() != null) {
+                if (ctx.function_head().declaration_modifiers().declaration_modifier(0).getText().contains("override")) {
 
-        if(ctx.function_head().declaration_modifiers() != null) {
-            if (ctx.function_head().declaration_modifiers().declaration_modifier(0).getText().contains("override")) {
-
-                Java_function += "@Override  \n";
-            }
-            if(ctx.function_head().declaration_modifiers().declaration_modifier(0).access_level_modifier()!= null) {
-
-                String Java_access = ctx.function_head().declaration_modifiers().declaration_modifier(0).access_level_modifier().getText();
-                //System.out.println(Java_access);
-                if(DataBaseResources.getJavaDataType(Java_access)!= null) {
-                    Java_function += DataBaseResources.getJavaDataType(Java_access) + " ";
+                    Java_function += "@Override  \n";
                 }
-                else
-                    Java_function+= Java_access + " ";
+                if (ctx.function_head().declaration_modifiers().declaration_modifier(0).access_level_modifier() != null) {
 
+                    String Java_access = ctx.function_head().declaration_modifiers().declaration_modifier(0).access_level_modifier().getText();
+                    //System.out.println(Java_access);
+                    if (DataBaseResources.getJavaDataType(Java_access) != null) {
+                        Java_function += DataBaseResources.getJavaDataType(Java_access) + " ";
+                    } else
+                        Java_function += Java_access + " ";
+
+
+                }
+            }
+            if (ctx.function_head().getText().contains("IBAction")) {
+                Java_function += "Button " + ctx.function_name().getText() + ";\n";
+                Java_function += ctx.function_name().getText() + " = (Button) findViewById(R.id." + ctx.function_name().getText() + ");\n";
+                Java_function += ctx.function_name().getText() + ".setOnClickListener(new View.OnClickListener() {  \n";
+                Java_function += "@Override  \n" +
+                        "            public void onClick(View view) ";
+                Java_function += "\n{\n";
+                Java_function += visitCode_block(ctx.function_body().code_block());
+                Java_function += "\n} \n });";
+                return Java_function;
+            } else if (ctx.function_signature().function_result() == null) {
+                javatype += "void";
+            } else {
+                javatype += DataBaseResources.getJavaDataType(ctx.function_signature().function_result().type().getText());
+            }
+            Java_function += javatype + " ";
+            if (ctx.function_name().getText().contains("viewDidLoad")) {
+                Java_function += "onCreate(Bundle savedInstanceState) {\n";
+                extrabrace_flag = true;
+                Java_function += visitCode_block(ctx.function_body().code_block());
+                return Java_function;
+
+            } else {
+                Java_function += ctx.function_name().getText() + "(";
+                Java_function += visitFunction_signature(ctx.function_signature()) + " ";
 
             }
-        }
-        if (ctx.function_head().getText().contains("IBAction"))
-        {
-            Java_function+="Button "+ctx.function_name().getText()+";\n";
-            Java_function+=ctx.function_name().getText()+" = (Button) findViewById(R.id."+ctx.function_name().getText()+");\n";
-            Java_function+=ctx.function_name().getText()+".setOnClickListener(new View.OnClickListener() {  \n";
-            Java_function+="@Override  \n" +
-                    "            public void onClick(View view) ";
             Java_function += "\n{\n";
             Java_function += visitCode_block(ctx.function_body().code_block());
-            Java_function += "\n} \n });";
+            Java_function += "\n}";
             return Java_function;
+        }catch (Exception e){
+            Java_function+=ctx.getText();
+            return "TCIOSACERROR "+Java_function;
         }
-        else if(ctx.function_signature().function_result()==null)
-        {
-            javatype+="void";
-        }
-
-        else {
-            javatype += DataBaseResources.getJavaDataType(ctx.function_signature().function_result().type().getText());
-        }
-        Java_function+=javatype+" ";
-        if(ctx.function_name().getText().contains("viewDidLoad"))
-        {
-            Java_function+="onCreate(Bundle savedInstanceState) {\n";
-            extrabrace_flag=true;
-            Java_function += visitCode_block(ctx.function_body().code_block());
-            return Java_function;
-
-        }
-        else {
-            Java_function += ctx.function_name().getText() + "(";
-            Java_function += visitFunction_signature(ctx.function_signature()) + " ";
-
-        }
-        Java_function += "\n{\n";
-        Java_function += visitCode_block(ctx.function_body().code_block());
-        Java_function += "\n}";
-        return Java_function;
     }
 
     @Override
     public String visitFunction_signature(Swift3Parser.Function_signatureContext ctx) {
         String Java_sig="";
-        if(ctx.parameter_clause().parameter_list()!=null) {
-            Java_sig +=visitParameter_list(ctx.parameter_clause().parameter_list())+")";
+        try {
+            if (ctx.parameter_clause().parameter_list() != null) {
+                Java_sig += visitParameter_list(ctx.parameter_clause().parameter_list()) + ")";
+            } else {
+                Java_sig += ")";
+            }
+            return Java_sig;
+        }catch (Exception e){
+            Java_sig+=ctx.getText();
+            return"TCIOSACERROR "+Java_sig;
         }
-        else{
-            Java_sig+=")";
-        }
-        return  Java_sig;
     }
 
     @Override
     public String visitConstant_declaration(Swift3Parser.Constant_declarationContext ctx) {
         String Java_constant="";
-        //Java_constant+="final "; //commented for not wanting it for UI
-        Java_constant+=visitPattern_initializer_list(ctx.pattern_initializer_list()); //removed adding the semicolon from here AY
-        return Java_constant;
+        try {
+            //Java_constant+="final "; //commented for not wanting it for UI
+            Java_constant += visitPattern_initializer_list(ctx.pattern_initializer_list()); //removed adding the semicolon from here AY
+            return Java_constant;
+        }catch(Exception e){
+            Java_constant+=ctx.getText();
+            return "TCIOSACERROR "+Java_constant;
+        }
     }
 
     @Override
     public String visitClass_declaration(Swift3Parser.Class_declarationContext ctx) {
         String Java_class="";
         String Java_acesslevel= "";
-        if(ctx.access_level_modifier(0)!=null) {
-            Java_acesslevel=DataBaseResources.getJavaDataType(ctx.access_level_modifier(0).getText());
-            Java_class += Java_acesslevel;
+        try {
+            if (ctx.access_level_modifier(0) != null) {
+                Java_acesslevel = DataBaseResources.getJavaDataType(ctx.access_level_modifier(0).getText());
+                Java_class += Java_acesslevel;
 
-        }
-        Java_class+=" class ";
-        Java_class+=ctx.class_name().getText()+" ";
-        ourclass=ctx.class_name().getText();
-        classlist.add(ctx.class_name().getText());
-
-        if(ctx.type_inheritance_clause()!= null) {
-            String Inherit = ctx.type_inheritance_clause().type_inheritance_list().type_identifier().type_name().getText();
-            String Java_Inherit = built_in_methods.getJavamethod(Inherit);
-            if (Inherit != null) {
-                inherit_flag = true;
-                if (Java_Inherit != null)
-                    Java_class += "extends " + Java_Inherit;
-                else
-                    Java_class += "extends " + Inherit;
             }
+            Java_class += " class ";
+            Java_class += ctx.class_name().getText() + " ";
+            ourclass = ctx.class_name().getText();
+            classlist.add(ctx.class_name().getText());
+
+            if (ctx.type_inheritance_clause() != null) {
+                String Inherit = ctx.type_inheritance_clause().type_inheritance_list().type_identifier().type_name().getText();
+                String Java_Inherit = built_in_methods.getJavamethod(Inherit);
+                if (Inherit != null) {
+                    inherit_flag = true;
+                    if (Java_Inherit != null)
+                        Java_class += "extends " + Java_Inherit;
+                    else
+                        Java_class += "extends " + Inherit;
+                }
+            }
+            Java_class += "{\n" + visitClass_body(ctx.class_body()) + "\n}";
+            return Java_class;
+        }catch(Exception e){
+            Java_class+=ctx.getText();
+            return "TCIOSACERROR "+Java_class;
         }
-        Java_class+="{\n"+ visitClass_body(ctx.class_body())+"\n}";
-        return Java_class;
     }
 
     @Override
     public String visitClass_body(Swift3Parser.Class_bodyContext ctx) {
         String java_class_body="";
-        for (int i = 0 ; i < ctx.class_member().size(); i++ )
-        {
-            java_class_body += visitDeclaration(ctx.class_member(i).declaration())+"\n";
+        try {
+            for (int i = 0; i < ctx.class_member().size(); i++) {
+                java_class_body += visitDeclaration(ctx.class_member(i).declaration()) + "\n";
+            }
+            return java_class_body;
+        }catch (Exception e){
+            java_class_body+= ctx.getText();
+            return "TCIOSACERROR "+java_class_body;
         }
-        return java_class_body;
     }
 
     @Override
     public String visitBranch_statement(Swift3Parser.Branch_statementContext ctx) {
         String java_branch ="";
-        if (ctx.if_statement()!=null)
-        {
-            java_branch += visitIf_statement(ctx.if_statement());
+        try {
+            if (ctx.if_statement() != null) {
+                java_branch += visitIf_statement(ctx.if_statement());
+            } else if (ctx.switch_statement() != null) {
+                java_branch += visitSwitch_statement(ctx.switch_statement());
+            } else if (ctx.guard_statement() != null) {
+                java_branch += visitGuard_statement(ctx.guard_statement());
+            }
+            return java_branch;
+        }catch (Exception e) {
+            java_branch+=ctx.getText();
+            return "TCIOSACERROR "+java_branch;
         }
-        else if (ctx.switch_statement()!=null) {
-            java_branch += visitSwitch_statement(ctx.switch_statement());
-        }
-        else if(ctx.guard_statement()!=null)
-        {
-            java_branch+= visitGuard_statement(ctx.guard_statement());
-        }
-
-
-        return java_branch;
     }
     @Override
     public String visitGuard_statement(Swift3Parser.Guard_statementContext ctx){
         String java_guard="";
-        if (ctx.getText().contains("URL_old")&&ctx.getText().contains("tel://"))
-        {
-            String url=ctx.condition_list().condition(0).optional_binding_condition().pattern().getText();
-            java_guard+="Intent "+url+" = new Intent(Intent.ACTION_CALL);\n";
-            java_guard+=url+".setData(Uri.parse(";
-            Swift3Parser.Function_call_expressionContext fctc=  (Swift3Parser.Function_call_expressionContext) ctx.condition_list().condition(0).optional_binding_condition().initializer().expression().prefix_expression().postfix_expression();
-            java_guard+= fctc.function_call_argument_clause().function_call_argument_list().function_call_argument(0).expression().getText();
-            java_guard+="); \n";
+        try {
+            if (ctx.getText().contains("URL_old") && ctx.getText().contains("tel://")) {
+                String url = ctx.condition_list().condition(0).optional_binding_condition().pattern().getText();
+                java_guard += "Intent " + url + " = new Intent(Intent.ACTION_CALL);\n";
+                java_guard += url + ".setData(Uri.parse(";
+                Swift3Parser.Function_call_expressionContext fctc = (Swift3Parser.Function_call_expressionContext) ctx.condition_list().condition(0).optional_binding_condition().initializer().expression().prefix_expression().postfix_expression();
+                java_guard += fctc.function_call_argument_clause().function_call_argument_list().function_call_argument(0).expression().getText();
+                java_guard += "); \n";
+            }
+            if (ctx.getText().contains("URL_old") && ctx.getText().contains("https://")) {
+                String url = ctx.condition_list().condition(0).optional_binding_condition().pattern().getText();
+                java_guard += "Intent " + url + " = new Intent(Intent.ACTION_VIEW);\n";
+                java_guard += url + ".setData(Uri.parse(";
+                Swift3Parser.Function_call_expressionContext fctc = (Swift3Parser.Function_call_expressionContext) ctx.condition_list().condition(0).optional_binding_condition().initializer().expression().prefix_expression().postfix_expression();
+                java_guard += fctc.function_call_argument_clause().function_call_argument_list().function_call_argument(0).expression().getText();
+                java_guard += "); \n";
+            }
+            return java_guard;
+        }catch (Exception e){
+            java_guard+= ctx.getText();
+            return "TCIOSACERROR "+java_guard;
         }
-        if (ctx.getText().contains("URL_old")&&ctx.getText().contains("https://"))
-        {
-            String url=ctx.condition_list().condition(0).optional_binding_condition().pattern().getText();
-            java_guard+="Intent "+url+" = new Intent(Intent.ACTION_VIEW);\n";
-            java_guard+=url+".setData(Uri.parse(";
-            Swift3Parser.Function_call_expressionContext fctc=  (Swift3Parser.Function_call_expressionContext) ctx.condition_list().condition(0).optional_binding_condition().initializer().expression().prefix_expression().postfix_expression();
-            java_guard+= fctc.function_call_argument_clause().function_call_argument_list().function_call_argument(0).expression().getText();
-            java_guard+="); \n";
-        }
-        return java_guard;
     }
 
     @Override
