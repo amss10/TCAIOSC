@@ -723,7 +723,7 @@ any_punctuation_for_balanced_token :
 // GRAMMAR OF AN EXPRESSION
 expression : try_operator? prefix_expression binary_expressions? ;
 
-expression_list : expression (',' expression)* ;
+expression_list : expression (',' expression)*;
 
 // GRAMMAR OF A PREFIX EXPRESSION
 
