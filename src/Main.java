@@ -8,10 +8,14 @@ import javax.print.attribute.standard.Destination;
 import javax.swing.*;
 import java.io.*;
 import java.lang.Math;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.lang.String;
+import java.util.Arrays;
+import java.util.Collections;
 
+import java.util.List;
 
 public class Main {
     public static boolean terminated;
@@ -26,6 +30,7 @@ public class Main {
         if (true) {
             try {
                 File directoryPath = new File(projectDirectory+"\\src\\"+"SwiftInput");
+                System.out.println(directoryPath);
                 File[] filesArray = directoryPath.listFiles();
                 File csvFile = new File("src\\Data.csv");
                 FileWriter fileWriter = new FileWriter(csvFile);

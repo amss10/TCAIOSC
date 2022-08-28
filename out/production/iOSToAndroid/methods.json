@@ -69,7 +69,6 @@
   "times":"String.repeat",
   "trimmed":"String.trim",
   "substring":"String.substring",
-
   //UI
   "text" : "setText",
   "text!" : "getText",
@@ -80,7 +79,8 @@
   //super expression:
   "super.viewDidLoad" : "super.onCreate",
   //"Alert" : "Toast.makeText",
-  //intent
+  //tintent
   "performSegue": "Intent intent = new Intent",
-  "exit" : "System.exit"
+  "exit" : "System.exit",
+  "HTTPClient": "AsyncHttpClient"
 }

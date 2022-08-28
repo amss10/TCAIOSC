@@ -1077,9 +1077,13 @@ public class SwiftToJavaVisitor extends Swift3BaseVisitor<String> {
 
     @Override
     public String visitExpression_pattern(Swift3Parser.Expression_patternContext ctx) {
-        String java_expression ="";
-        java_expression += visitExpression(ctx.expression());
-        return java_expression;
+        String java_expression = "";
+        try {
+            java_expression += visitExpression(ctx.expression());
+            return java_expression;
+        }catch(Exception e){
+            return "TCIOSACERROR"+java_expression;
+        }
     }
 
     @Override
@@ -1113,44 +1117,43 @@ public class SwiftToJavaVisitor extends Swift3BaseVisitor<String> {
 
         String java_initializer = "";
         java_initializer +=" ";
-        java_initializer += ctx.assignment_operator().getText();
-        String array_expression=ctx.expression().getText();
+        try {
+            java_initializer += ctx.assignment_operator().getText();
+            String array_expression = ctx.expression().getText();
 
-        if(array_expression.startsWith("[")==true) {
-            java_initializer+="{";
-            array_expression=array_expression.substring(1,array_expression.length()-1)+"}";
-            java_initializer+=array_expression;
-            return java_initializer;
-        }
-
-        else if (array_expression.startsWith("Array()")){
-            java_initializer+=" new "+array_type+"()";
-            return java_initializer;
-        }
-        else if (class_flag== 1)
-        {
-            java_initializer += " new ";
-            if(ctx.expression()!=null)
-                java_initializer += visitExpression(ctx.expression());
-            else
-                java_initializer+="()";
-            class_flag=0;
-        }
-        else {
-            java_initializer += " ";
+            if (array_expression.startsWith("[") == true) {
+                java_initializer += "{";
+                array_expression = array_expression.substring(1, array_expression.length() - 1) + "}";
+                java_initializer += array_expression;
+                return java_initializer;
+            } else if (array_expression.startsWith("Array()")) {
+                java_initializer += " new " + array_type + "()";
+                return java_initializer;
+            } else if (class_flag == 1) {
+                java_initializer += " new ";
+                if (ctx.expression() != null)
+                    java_initializer += visitExpression(ctx.expression());
+                else
+                    java_initializer += "()";
+                class_flag = 0;
+            } else {
+                java_initializer += " ";
 //            System.out.println("889"+ java_initializer);
-            java_initializer += visitExpression(ctx.expression());
+                java_initializer += visitExpression(ctx.expression());
 //            System.out.println("891"+ java_initializer);
+            }
+            return java_initializer;
+        }catch (Exception e){
+            return "TCIOSACERROR "+java_initializer;
         }
-        return java_initializer;
     }
 
     @Override
     public String visitExpression(Swift3Parser.ExpressionContext ctx) {
-        try {
+
             String java_expression = "";
             java_expression += visitPrefix_expression(ctx.prefix_expression());
-
+            try {
             if (ctx.binary_expressions() != null) {
                 if (text_flag) {
                     text_flag = false;
@@ -1166,28 +1169,34 @@ public class SwiftToJavaVisitor extends Swift3BaseVisitor<String> {
                 }
             }
 //        System.out.println("917"+java_expression);
-
             return java_expression;
         }catch(Exception e){
-            return "TCIOSACERROR "+ctx.getText();
+            return "TCIOSACERROR "+java_expression;
         }
     }
 
     @Override
     public String visitBinary_expressions(Swift3Parser.Binary_expressionsContext ctx) {
         String java_binary_expressions = "";
-
-        for (int i=0; i < ctx.binary_expression().size(); i++)
-            java_binary_expressions+= visitBinary_expression(ctx.binary_expression(i));
-        return java_binary_expressions;
+        try {
+            for (int i = 0; i < ctx.binary_expression().size(); i++)
+                java_binary_expressions += visitBinary_expression(ctx.binary_expression(i));
+            return java_binary_expressions;
+        }catch (Exception e){
+            return "TCIOSACERROR "+java_binary_expressions;
+        }
     }
 
     @Override
     public String visitBinary_expression(Swift3Parser.Binary_expressionContext ctx) {
         String java_binary= "";
-        java_binary += " " + ctx.binary_operator().getText()+" ";
-        java_binary += visitPrefix_expression(ctx.prefix_expression());
-        return java_binary;
+        try {
+            java_binary += " " + ctx.binary_operator().getText() + " ";
+            java_binary += visitPrefix_expression(ctx.prefix_expression());
+            return java_binary;
+        }catch (Exception e){
+            return "TCIOSACERROR "+java_binary;
+        }
     }
 
     @Override
@@ -1625,10 +1634,13 @@ public class SwiftToJavaVisitor extends Swift3BaseVisitor<String> {
     @Override
     public String visitPostfix_operation(Swift3Parser.Postfix_operationContext ctx) {
         String Java_operation="";
-        Java_operation+=visit(ctx.postfix_expression());
-        Java_operation+=ctx.postfix_operator().getText();
-
-        return Java_operation;
+        try {
+            Java_operation += visit(ctx.postfix_expression());
+            Java_operation += ctx.postfix_operator().getText();
+            return Java_operation;
+        }catch (Exception e){
+            return "TCIOSACERROR "+Java_operation;
+        }
     }
 
     @Override
@@ -1801,34 +1813,38 @@ public class SwiftToJavaVisitor extends Swift3BaseVisitor<String> {
     @Override
     public String visitClosure_expression(Swift3Parser.Closure_expressionContext ctx) {
         String Java_closure = "";
-        if(ctx.statements() != null)
-        {
-            Java_closure += visitStatements(ctx.statements());
+        try {
+            if (ctx.statements() != null) {
+                Java_closure += visitStatements(ctx.statements());
+            }
+            return Java_closure;
+        }catch (Exception e){
+            return "TCIOSACERROR "+Java_closure;
         }
-        return Java_closure;
     }
 
     @Override
     public String visitLiteral_expression(Swift3Parser.Literal_expressionContext ctx) {
 
-        String java_literal= ctx.getText();
+        String java_literal= "";
+        try {
+            java_literal += ctx.getText();
 //        java_literal = java_literal.substring(1, java_literal.length()-1); //remove the double quotes
-        /** Soliman **/
-        /* This condition makes sure that the statement that's being converted now isn't a variable or a print statement so that it won't remove its quotes */
-        boolean true_flag = true;
-        if(java_literal.contains("\"") && !variable_declaration_flag && !print_statement_flag){
-            java_literal = java_literal.replace("\"","");
-            Literal_expression = java_literal;
-        }else if(java_literal.contains("\'") && !variable_declaration_flag && !print_statement_flag){
-            java_literal = java_literal.replace("\'","");
-            Literal_expression = java_literal;
-        }
-        else{
-            Literal_expression = java_literal;
-            print_statement_flag = false;
-        }
-        /** Soliman **/
-        /* TODO: change the conditions to remove the quotes("\"|\'") only for the UI Components instead of specifying the ones not to remove from */
+            /** Soliman **/
+            /* This condition makes sure that the statement that's being converted now isn't a variable or a print statement so that it won't remove its quotes */
+            boolean true_flag = true;
+            if (java_literal.contains("\"") && !variable_declaration_flag && !print_statement_flag) {
+                java_literal = java_literal.replace("\"", "");
+                Literal_expression = java_literal;
+            } else if (java_literal.contains("\'") && !variable_declaration_flag && !print_statement_flag) {
+                java_literal = java_literal.replace("\'", "");
+                Literal_expression = java_literal;
+            } else {
+                Literal_expression = java_literal;
+                print_statement_flag = false;
+            }
+            /** Soliman **/
+            /* TODO: change the conditions to remove the quotes("\"|\'") only for the UI Components instead of specifying the ones not to remove from */
         /*if(ctx.literal().numeric_literal().Floating_point_literal()!= null)
         {
             literal_annotation = "Float";
@@ -1843,14 +1859,20 @@ public class SwiftToJavaVisitor extends Swift3BaseVisitor<String> {
             literal_annotation = "String";
         }wdsadasdaw
          */
-        return java_literal;
+            return java_literal;
+        }catch (Exception e){
+            return "TCIOSACERROR "+java_literal;
+        }
     }
     @Override
     public String visitParenthesized_expression(Swift3Parser.Parenthesized_expressionContext ctx) {
         String java_parenthesis = "";
-
-        java_parenthesis += "("+visitExpression(ctx.expression())+")";
-        return java_parenthesis;
+        try {
+            java_parenthesis += "(" + visitExpression(ctx.expression()) + ")";
+            return java_parenthesis;
+        }catch(Exception e){
+            return "TCIOSACERROR "+ java_parenthesis;
+        }
     }
 
     @Override
